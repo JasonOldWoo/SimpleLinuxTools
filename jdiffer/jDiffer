@@ -3,6 +3,26 @@
 init_dir1="."
 init_dir2="."
 
+fatal_log()
+{
+	echo -e "\e[1;31mFatal: $1\e[0m"
+}
+
+happy_log()
+{
+	echo -e "\e[1;36m$1\e[0m"
+}
+
+blue_log()
+{
+	echo -e "\e[1;34m$1\e[0m"
+}
+
+warning_log()
+{
+	echo -e "\e[1;33m$1\e[0m"
+}
+
 summary()
 {
 	echo "not implemented yet"
@@ -42,16 +62,16 @@ scan()
 					testcmp=`diff $file_l $file_r`
 					if [ -z "$testcmp" ]
 					then
-						echo -e "\e[1;34mSkipped: ${file_l#$init_dir1/}\e[0m"
+						blue_log "Skipped: ${file_l#$init_dir1/}"
 					else
-						echo -e "\e[1;36mMatched: ${file_l#$init_dir1/}\e[0m"
+						happy_log "Matched: ${file_l#$init_dir1/}"
 						jdiff $file_l $file_r
 					fi
 				else
-					echo -e "\e[1;33mBinary: ${file_l#$init_dir1/}\e[0m"
+					warning_log "Binary: ${file_l#$init_dir1/}"
 				fi
 			else
-				echo -e "\e[1;33mNot detected: $file_r\e[0m"
+				warning_log "Not detected: $file_r"
 			fi
 		elif test -d $file_l
 		then
@@ -63,22 +83,23 @@ scan()
 which vimdiff > /dev/null 2>&1
 if [ $? -gt 0 ];
 then
-	echo -e "\e[1;31mFatal: no vimdiff detected....\e[0m"
+	fatal_log "no vimdiff detected...."
 	exit 1
 fi
 
 which diff > /dev/null 2>&1
 if [ $? -gt 0 ];
 then
-	echo -e "\e[1;31mFatal: no diff detected....\e[0m"
+	fatal_log "no diff detected...."
 	exit 1
 fi
 
 if [ -z $1 ] || [ -z $2 ]
 then
-	echo -e "\e[1;31mUsage: jdiffer <dir_1> <dir_2>\e[0m"
+	fatal_log "Usage: jDiffer <dir_1> <dir_2>"
 	exit 1
 fi
+
 init_dir1=$1
 init_dir2=$2
 init_dir1=${init_dir1%/}
