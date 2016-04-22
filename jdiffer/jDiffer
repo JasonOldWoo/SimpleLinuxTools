@@ -42,8 +42,9 @@ scan()
 					testcmp=`diff $file_l $file_r`
 					if [ -z "$testcmp" ]
 					then
-						echo "Skipped: ${file_l#$init_dir1/}"
+						echo -e "\e[1;34mSkipped: ${file_l#$init_dir1/}\e[0m"
 					else
+						echo -e "\e[1;36mMatched: ${file_l#$init_dir1/}\e[0m"
 						jdiff $file_l $file_r
 					fi
 				else
