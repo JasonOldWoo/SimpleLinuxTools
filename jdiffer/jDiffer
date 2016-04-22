@@ -1,0 +1,90 @@
+#!/bin/sh
+
+init_dir1="."
+init_dir2="."
+
+summary()
+{
+	echo "not implemented yet"
+}
+
+is_binary()
+{
+	fileinfo=`file -i $1`
+	is_bin=`echo "$fileinfo" | awk '{print $2}'`
+	if [[ "$is_bin" =~ text ]]
+	then
+		return 1
+	else
+		return 0
+	fi
+}
+
+jdiff()
+{
+	vimdiff $1 $2
+	echo "Press any key to continue...."
+	read -n1
+}
+
+scan()
+{
+	for file_l in $1/*
+	do
+		if test -f $file_l
+		then
+			file_r=$init_dir2/${file_l#$init_dir1/}
+			if test -f $file_r
+			then
+				is_binary $file_r
+				if [ $? -eq 1 ]
+				then
+					testcmp=`diff $file_l $file_r`
+					if [ -z "$testcmp" ]
+					then
+						echo "Skipped: ${file_l#$init_dir1/}"
+					else
+						jdiff $file_l $file_r
+					fi
+				else
+					echo -e "\e[1;33mBinary: ${file_l#$init_dir1/}\e[0m"
+				fi
+			else
+				echo -e "\e[1;33mNot detected: $file_r\e[0m"
+			fi
+		elif test -d $file_l
+		then
+			scan $file_l
+		fi
+	done
+}
+
+which vimdiff > /dev/null 2>&1
+if [ $? -gt 0 ];
+then
+	echo -e "\e[1;31mFatal: no vimdiff detected....\e[0m"
+	exit 1
+fi
+
+which diff > /dev/null 2>&1
+if [ $? -gt 0 ];
+then
+	echo -e "\e[1;31mFatal: no diff detected....\e[0m"
+	exit 1
+fi
+
+if [ -z $1 ] || [ -z $2 ]
+then
+	echo -e "\e[1;31mUsage: jdiffer <dir_1> <dir_2>\e[0m"
+	exit 1
+fi
+init_dir1=$1
+init_dir2=$2
+init_dir1=${init_dir1%/}
+init_dir1=${init_dir1#./}
+init_dir2=${init_dir2%/}
+init_dir2=${init_dir2#./}
+
+echo "Start comparing: [$init_dir1] <----> [$init_dir2]"
+
+scan $init_dir1
